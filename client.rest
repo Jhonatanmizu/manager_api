@@ -1,0 +1,49 @@
+@baseUrl = http://localhost:3000
+
+
+# Reminder
+
+###
+# find all reminders
+GET {{baseUrl}}/reminder
+?limit=10
+&offset=10
+&searchText=""
+###
+
+
+###
+# find one reminder
+GET {{baseUrl}}/reminder/2
+###
+
+###
+# create one reminder
+POST {{baseUrl}}/reminder
+Content-Type: application/json
+
+{
+  "description":"Esse é o recado",
+  "from":"Joana",
+  "to":"Atlas",
+  "seen":false,
+  "date": "2024-11-05"
+}
+###
+
+
+###
+# update one reminder
+PATCH {{baseUrl}}/reminder/1
+Content-Type: application/json
+
+{
+  "description":"Esse é o recado"
+}
+###
+
+
+###
+# delete one reminder
+DELETE  {{baseUrl}}/reminder/1
+###
