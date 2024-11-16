@@ -2,9 +2,16 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Reminder } from './entities/reminder.entity';
 import { CreateReminderDto } from './dtos/create-reminder.dto';
 import { UpdateReminderDto } from './dtos/update-reminder.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ReminderService {
+  constructor(
+    @InjectRepository(Reminder)
+    private readonly reminderRepository: Repository<Reminder>,
+  ) {}
+
   private lastId = 1;
   private reminders: Reminder[] = [
     {
@@ -13,7 +20,7 @@ export class ReminderService {
       from: 'joana',
       to: 'sasuke',
       seen: false,
-      date: new Date(),
+      createAt: new Date(),
     },
   ];
 
@@ -22,7 +29,7 @@ export class ReminderService {
   }
 
   public async findAll() {
-    return await this.reminders;
+    return await this.reminderRepository.find();
   }
 
   public async findOne(id: number) {
@@ -40,7 +47,7 @@ export class ReminderService {
     const newReminder: Reminder = {
       id: newId,
       ...body,
-      date: new Date(),
+      createAt: new Date(),
       seen: false,
     };
 
