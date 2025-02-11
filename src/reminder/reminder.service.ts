@@ -1,14 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Reminder } from './entities/reminder.entity';
 import { CreateReminderDto } from './dtos/create-reminder.dto';
 import { UpdateReminderDto } from './dtos/update-reminder.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { REMINDER_REPOSITORY } from './reminder.providers';
 
 @Injectable()
 export class ReminderService {
   constructor(
-    @InjectRepository(Reminder)
+    @Inject(REMINDER_REPOSITORY)
     private readonly reminderRepository: Repository<Reminder>,
   ) {}
 
@@ -33,7 +33,12 @@ export class ReminderService {
   }
 
   public async findOne(id: number) {
-    const target = this.reminders.find((r) => r.id === +id);
+    const target = await this.reminderRepository.findOne({
+      where: {
+        id,
+      },
+    });
+    // const target = this.reminders.find((r) => r.id === +id);
 
     if (!target) {
       this.NotFoundReminderException();
@@ -41,7 +46,7 @@ export class ReminderService {
     return await target;
   }
 
-  create(body: CreateReminderDto) {
+  async create(body: CreateReminderDto) {
     this.lastId++;
     const newId = this.lastId;
     const newReminder: Reminder = {
@@ -51,8 +56,7 @@ export class ReminderService {
       seen: false,
     };
 
-    this.reminders.push(newReminder);
-
+    await this.reminderRepository.save(newReminder);
     return newReminder;
   }
 

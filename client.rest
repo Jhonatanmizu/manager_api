@@ -25,9 +25,7 @@ Content-Type: application/json
 {
   "description":"Esse é o recado",
   "from":"Joana",
-  "to":"Atlas",
-  "seen":false,
-  "date": "2024-11-05"
+  "to":"Atlas"
 }
 ###
 

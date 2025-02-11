@@ -1,12 +1,13 @@
 import { ReminderService } from './reminder.service';
 import { Module } from '@nestjs/common';
 import { ReminderController } from './reminder.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Reminder } from './entities/reminder.entity';
+import { reminderProviders } from './reminder.providers';
+import { DatabaseModule } from 'src/shared/database/database.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Reminder])],
-  providers: [ReminderService],
+  imports: [DatabaseModule],
+  providers: [ReminderService, ...reminderProviders],
   controllers: [ReminderController],
+  exports: [...reminderProviders],
 })
 export class ReminderModule {}
