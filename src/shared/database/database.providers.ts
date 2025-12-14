@@ -3,7 +3,7 @@ import { DataSource } from 'typeorm';
 
 export const DATA_SOURCE = 'DATA_SOURCE';
 
-// TODO replace this using nest config add envs
+const DB_PORT = Number(process.env.DB_PORT) ?? 5432;
 
 export const databaseProviders = [
   {
@@ -11,14 +11,15 @@ export const databaseProviders = [
     useFactory: async () => {
       const dataSource = new DataSource({
         type: 'postgres',
-        password: 'water',
-        username: 'mizu',
-        port: 5432,
-        host: 'localhost',
-        database: 'postgres',
-        synchronize: true,
+        host: process.env.DB_HOST,
+        port: DB_PORT,
+        username: process.env.DB_USERNAME,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        synchronize: process.env.DB_SYNCHRONIZE === 'true',
         entities: [Reminder],
       });
+
       return dataSource.initialize();
     },
   },
