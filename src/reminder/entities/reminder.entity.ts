@@ -8,8 +8,8 @@ import {
 
 @Entity()
 export class Reminder {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id?: string;
   @Column({
     type: 'varchar',
     length: 255,

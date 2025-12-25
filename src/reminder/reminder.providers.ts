@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
 import { Reminder } from './entities/reminder.entity';
-import { DATA_SOURCE } from 'src/shared/database/database.providers';
+import { DATA_SOURCE } from '../shared/database/database.providers';
 
 export const REMINDER_REPOSITORY = 'REMINDER_REPOSITORY';
 

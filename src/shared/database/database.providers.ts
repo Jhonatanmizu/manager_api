@@ -1,4 +1,4 @@
-import { Reminder } from 'src/reminder/entities/reminder.entity';
+import { Reminder } from '../../reminder/entities/reminder.entity';
 import { DataSource } from 'typeorm';
 
 export const DATA_SOURCE = 'DATA_SOURCE';

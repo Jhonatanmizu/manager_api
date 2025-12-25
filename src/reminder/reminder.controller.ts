@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -18,11 +17,12 @@ export class ReminderController {
   constructor(private readonly reminderService: ReminderService) {}
   @Get()
   async findAll(@Query() queryParams: any) {
-    return await this.reminderService.findAll();
+    const { limit = 10, offset = 0 } = queryParams;
+    return await this.reminderService.findAll(limit, offset);
   }
 
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
+  async findOne(@Param('id') id: string) {
     return await this.reminderService.findOne(id);
   }
 
@@ -32,15 +32,12 @@ export class ReminderController {
   }
 
   @Patch(':id')
-  async update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() data: UpdateReminderDto,
-  ) {
+  async update(@Param('id') id: string, @Body() data: UpdateReminderDto) {
     return await this.reminderService.update(id, data);
   }
 
   @Delete(':id')
-  async remove(@Param('id', ParseIntPipe) id: number) {
+  async remove(@Param('id') id: string) {
     return await this.reminderService.remove(id);
   }
 }
