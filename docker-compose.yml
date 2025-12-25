@@ -9,9 +9,11 @@ services:
     ports:
       - ${PORT}:${PORT}
     volumes:
-      - .:/app
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
     depends_on:
       - db
+    command: yarn start:dev
   db:
     container_name: manager-database
     image: postgres
