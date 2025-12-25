@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3000
+@baseUrl = http://localhost:3001
 
 
 # Reminder
@@ -14,7 +14,7 @@ GET {{baseUrl}}/reminder
 
 ###
 # find one reminder
-GET {{baseUrl}}/reminder/2
+GET {{baseUrl}}/reminder/95af33d3-cb69-4c32-b9cc-bc11f2a8121f
 ###
 
 ###
@@ -23,7 +23,7 @@ POST {{baseUrl}}/reminder
 Content-Type: application/json
 
 {
-  "description":"Esse é o recado",
+  "description":"Esse é o recado 3",
   "from":"Joana",
   "to":"Atlas"
 }
