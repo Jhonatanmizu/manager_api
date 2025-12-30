@@ -24,10 +24,13 @@ export class ReminderService {
     this.logger.log(
       `Fetching all reminders. Limit: ${limit}, Offset: ${offset}`,
     );
-    const result = await this.reminderRepository.find();
+    const result = await this.reminderRepository.find({
+      take: limit,
+      skip: offset,
+    });
     this.logger.log(`Found ${result.length} reminders.`);
 
-    return await this.reminderRepository.find();
+    return result;
   }
 
   public async findOne(id: string): Promise<Reminder> {
@@ -36,6 +39,7 @@ export class ReminderService {
         id,
       },
     });
+    this.logger.log(`Finding reminder with ID ${id}`);
     if (!target) {
       this.NotFoundReminderException();
     }
@@ -59,7 +63,11 @@ export class ReminderService {
       seen: body.seen,
       to: body.to,
       updatedAt: new Date(),
+      id,
+      description: body.description,
+      from: body.from,
     });
+    this.logger.log(`Updating reminder ${JSON.stringify(exists)}`);
     if (!exists) {
       this.NotFoundReminderException();
     }
@@ -74,6 +82,7 @@ export class ReminderService {
         id,
       },
     });
+    this.logger.log(`Deleting reminder with ID ${id}`);
     if (!exists) {
       this.NotFoundReminderException();
     }
