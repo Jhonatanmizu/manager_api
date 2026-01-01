@@ -49,7 +49,7 @@ export class ReminderService {
   async create(body: CreateReminderDto): Promise<Reminder> {
     const newReminder: Reminder = {
       ...body,
-      createAt: new Date(),
+      createdAt: new Date(),
       seen: false,
     };
     this.logger.log(`Creating a new reminder: ${JSON.stringify(newReminder)}`);

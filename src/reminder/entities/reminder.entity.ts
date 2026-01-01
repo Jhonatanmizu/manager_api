@@ -31,7 +31,7 @@ export class Reminder {
   })
   seen: boolean;
   @CreateDateColumn()
-  createAt?: Date;
+  createdAt?: Date;
   @UpdateDateColumn()
   updatedAt?: Date;
 }

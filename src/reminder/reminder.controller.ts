@@ -12,7 +12,7 @@ import { ReminderService } from './reminder.service';
 import { CreateReminderDto } from './dtos/create-reminder.dto';
 import { UpdateReminderDto } from './dtos/update-reminder.dto';
 
-@Controller('reminder')
+@Controller('/v1/reminder')
 export class ReminderController {
   constructor(private readonly reminderService: ReminderService) {}
   @Get()
