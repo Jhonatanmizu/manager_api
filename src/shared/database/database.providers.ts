@@ -1,3 +1,4 @@
+import { User } from '../../users/entities/user.entity';
 import { Reminder } from '../../reminder/entities/reminder.entity';
 import { DataSource } from 'typeorm';
 
@@ -17,7 +18,7 @@ export const databaseProviders = [
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
         synchronize: process.env.DB_SYNCHRONIZE === 'true',
-        entities: [Reminder],
+        entities: [Reminder, User],
       });
 
       return dataSource.initialize();

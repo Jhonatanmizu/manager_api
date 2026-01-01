@@ -4,10 +4,11 @@ import { AppService } from './app.service';
 import { ReminderService } from './reminder/reminder.service';
 import { ReminderModule } from './reminder/reminder.module';
 import { ConfigModule } from '@nestjs/config';
+import { UsersModule } from './users/users.module';
 
 @Module({
-  imports: [ReminderModule, ConfigModule.forRoot()],
+  imports: [ConfigModule.forRoot(), ReminderModule, UsersModule],
   controllers: [AppController],
-  providers: [AppService, ReminderService],
+  providers: [AppService],
 })
 export class AppModule {}
