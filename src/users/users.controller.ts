@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Logger,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -13,30 +14,38 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('/v1/user')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly logger: Logger,
+  ) {}
 
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
+    this.logger.log('Hit create user');
     return this.usersService.create(createUserDto);
   }
 
   @Get()
   findAll() {
+    this.logger.log('Hit find all users');
     return this.usersService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
+    this.logger.log('Hit find one user');
     return this.usersService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    this.logger.log('Hit update user');
     return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
+    this.logger.log('Hit delete user');
     return this.usersService.remove(id);
   }
 }
