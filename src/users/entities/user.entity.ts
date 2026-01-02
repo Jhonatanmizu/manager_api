@@ -27,10 +27,15 @@ export class User {
   })
   birthDate?: Date | null;
 
-  @CreateDateColumn()
-  createdAt: Date;
-  @UpdateDateColumn()
-  updatedAt: Date;
+  @CreateDateColumn({
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  createdAt?: Date;
+  @UpdateDateColumn({
+    default: null,
+    nullable: true,
+  })
+  updatedAt?: Date;
 
   @Column({
     type: 'varchar',
