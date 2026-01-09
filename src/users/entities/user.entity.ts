@@ -1,7 +1,9 @@
+import { Reminder } from 'src/reminder/entities/reminder.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -48,4 +50,10 @@ export class User {
     default: true,
   })
   isActive: boolean;
+
+  @OneToMany(() => Reminder, (reminder) => reminder.from)
+  receivedReminders: Reminder[];
+
+  @OneToMany(() => Reminder, (reminder) => reminder.to)
+  sentReminders: Reminder[];
 }

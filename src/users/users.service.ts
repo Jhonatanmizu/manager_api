@@ -32,6 +32,8 @@ export class UsersService {
         birthDate: createUserDto.birthDate,
         createdAt: new Date(),
         updatedAt: new Date(),
+        receivedReminders: [],
+        sentReminders: [],
       };
       this.logger.log(`Creating user: ${JSON.stringify(newUser)}`);
       const user = await this.usersRepository.save(newUser);
@@ -51,6 +53,9 @@ export class UsersService {
     this.logger.log('Fetching all users');
     const users = await this.usersRepository.find({
       where: { isActive: true },
+      order: {
+        createdAt: 'DESC',
+      },
     });
     return users;
   }
@@ -88,7 +93,6 @@ export class UsersService {
       throw new NotFoundException(`User with id ${id} not found`);
     }
 
-    await this.usersRepository.softDelete(id);
-    return `This action removes a #${id} user`;
+    return await this.usersRepository.softDelete(id);
   }
 }
