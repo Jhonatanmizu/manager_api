@@ -11,14 +11,14 @@ import {
 import { ReminderService } from './reminder.service';
 import { CreateReminderDto } from './dtos/create-reminder.dto';
 import { UpdateReminderDto } from './dtos/update-reminder.dto';
+import { PaginationDto } from '../shared/dtos';
 
 @Controller('/v1/reminder')
 export class ReminderController {
   constructor(private readonly reminderService: ReminderService) {}
   @Get()
-  async findAll(@Query() queryParams: any) {
-    const { limit = 10, offset = 0 } = queryParams;
-    return await this.reminderService.findAll(limit, offset);
+  async findAll(@Query() queryParams: PaginationDto) {
+    return await this.reminderService.findAll(queryParams);
   }
 
   @Get(':id')

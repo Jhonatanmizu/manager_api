@@ -1,4 +1,10 @@
-import { IsNotEmpty, MinLength, IsString, MaxLength } from 'class-validator';
+import {
+  IsNotEmpty,
+  MinLength,
+  IsString,
+  MaxLength,
+  IsUUID,
+} from 'class-validator';
 
 export class CreateReminderDto {
   @IsNotEmpty()
@@ -7,15 +13,13 @@ export class CreateReminderDto {
   @MaxLength(255)
   readonly description: string;
 
-  @MinLength(2)
   @IsNotEmpty()
   @IsString()
-  @MaxLength(100)
-  readonly from: string;
+  @IsUUID()
+  readonly from_id: string;
 
-  @MinLength(2)
-  @MaxLength(100)
   @IsString()
   @IsNotEmpty()
-  readonly to: string;
+  @IsUUID()
+  readonly to_id: string;
 }

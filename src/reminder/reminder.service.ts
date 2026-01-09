@@ -4,6 +4,8 @@ import { CreateReminderDto } from './dtos/create-reminder.dto';
 import { UpdateReminderDto } from './dtos/update-reminder.dto';
 import { Reminder } from './entities/reminder.entity';
 import { REMINDER_REPOSITORY } from './reminder.providers';
+import { UsersService } from '../users/users.service';
+import { PaginationDto } from '../shared/dtos';
 
 @Injectable()
 export class ReminderService {
@@ -11,22 +13,24 @@ export class ReminderService {
   constructor(
     @Inject(REMINDER_REPOSITORY)
     private readonly reminderRepository: Repository<Reminder>,
+    private readonly userService: UsersService,
   ) {}
 
   private NotFoundReminderException() {
     throw new NotFoundException('Could not find the reminder');
   }
 
-  public async findAll(
-    limit: number = 12,
-    offset: number = 0,
-  ): Promise<Reminder[]> {
+  public async findAll(queryParams: PaginationDto): Promise<Reminder[]> {
+    const { limit = 12, offset = 0 } = queryParams;
     this.logger.log(
       `Fetching all reminders. Limit: ${limit}, Offset: ${offset}`,
     );
     const result = await this.reminderRepository.find({
       take: limit,
       skip: offset,
+      order: {
+        createdAt: 'DESC',
+      },
     });
     this.logger.log(`Found ${result.length} reminders.`);
 
@@ -38,6 +42,15 @@ export class ReminderService {
       where: {
         id,
       },
+      relations: ['from', 'to'],
+      select: {
+        from: {
+          id: true,
+        },
+        to: {
+          id: true,
+        },
+      },
     });
     this.logger.log(`Finding reminder with ID ${id}`);
     if (!target) {
@@ -47,33 +60,61 @@ export class ReminderService {
   }
 
   async create(body: CreateReminderDto): Promise<Reminder> {
+    const promises = Promise.all([
+      await this.userService.findOne(body.from_id),
+      await this.userService.findOne(body.to_id),
+    ]);
+    const [fromUser, toUser] = await promises;
+
     const newReminder: Reminder = {
-      ...body,
+      description: body.description,
       createdAt: new Date(),
       seen: false,
+      from: fromUser,
+      to: toUser,
     };
+
     this.logger.log(`Creating a new reminder: ${JSON.stringify(newReminder)}`);
 
-    await this.reminderRepository.save(newReminder);
-    return newReminder;
+    const result = await this.reminderRepository.save(newReminder);
+    return {
+      ...result,
+      from: {
+        id: fromUser.id,
+        name: fromUser.name,
+        email: fromUser.email,
+      },
+      to: {
+        id: toUser.id,
+        name: toUser.name,
+        email: toUser.email,
+      },
+    };
   }
 
   public async update(id: string, body: UpdateReminderDto): Promise<Reminder> {
-    const exists = await this.reminderRepository.preload({
-      seen: body.seen,
-      to: body.to,
+    const exists = await this.findOne(id);
+    const updatedReminder: Partial<Reminder> = {
+      ...exists,
       updatedAt: new Date(),
-      id,
-      description: body.description,
-      from: body.from,
-    });
+      seen: body.seen ?? exists.seen,
+      description: body.description ?? exists.description,
+    };
     this.logger.log(`Updating reminder ${JSON.stringify(exists)}`);
-    if (!exists) {
-      this.NotFoundReminderException();
-    }
-
-    await this.reminderRepository.save(exists);
-    return exists;
+    await this.reminderRepository.save(updatedReminder);
+    return {
+      ...exists,
+      from: {
+        id: exists.from.id,
+        name: exists.from.name,
+        email: exists.from.email,
+      },
+      to: {
+        id: exists.to.id,
+        name: exists.to.name,
+        email: exists.to.email,
+      },
+    };
   }
 
   public async remove(id: string): Promise<Reminder> {

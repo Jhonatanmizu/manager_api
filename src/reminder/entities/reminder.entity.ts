@@ -1,7 +1,10 @@
+import { User } from 'src/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -15,16 +18,14 @@ export class Reminder {
     length: 255,
   })
   description: string;
-  @Column({
-    type: 'varchar',
-    length: 100,
-  })
-  from: string;
-  @Column({
-    type: 'varchar',
-    length: 100,
-  })
-  to: string;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @JoinColumn({ name: 'from_id' })
+  from: Partial<User>;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @JoinColumn({ name: 'to_id' })
+  to: Partial<User>;
   @Column({
     type: 'boolean',
     default: false,
