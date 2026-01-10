@@ -2,8 +2,9 @@ import {
   IsDate,
   IsEmail,
   IsNotEmpty,
+  IsOptional,
   IsString,
-  IsStrongPassword,
+  MaxLength,
   MinLength,
 } from 'class-validator';
 
@@ -13,14 +14,14 @@ export class CreateUserDto {
 
   @IsNotEmpty()
   @MinLength(8)
-  @IsStrongPassword()
   readonly password: string;
 
   @IsNotEmpty()
   @IsString()
-  @MinLength(200)
+  @MaxLength(200)
   readonly name: string;
 
   @IsDate()
+  @IsOptional()
   readonly birthDate?: Date | null;
 }

@@ -2,6 +2,7 @@ import { Reminder } from 'src/reminder/entities/reminder.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -49,11 +50,12 @@ export class User {
     type: 'boolean',
     default: true,
   })
-  isActive: boolean;
-
   @OneToMany(() => Reminder, (reminder) => reminder.from)
   receivedReminders: Reminder[];
 
   @OneToMany(() => Reminder, (reminder) => reminder.to)
   sentReminders: Reminder[];
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 }
