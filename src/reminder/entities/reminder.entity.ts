@@ -2,6 +2,7 @@ import { User } from 'src/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -35,4 +36,7 @@ export class Reminder {
   createdAt?: Date;
   @UpdateDateColumn()
   updatedAt?: Date;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 }
