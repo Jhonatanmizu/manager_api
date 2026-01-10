@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
+import { TimingConnectionInterceptor } from './interceptors';
 
 @Module({
   providers: [],
-  exports: [],
+  exports: [TimingConnectionInterceptor],
 })
 export class SharedModule {}
