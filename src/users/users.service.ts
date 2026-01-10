@@ -8,7 +8,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 import { PaginationDto } from '../shared/dtos';
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -22,13 +22,13 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
-      const passwordHash = await bcrypt.hash(createUserDto.password, 10);
+      const saltRounds = 10;
+      const salt = await bcrypt.genSalt(saltRounds);
+      const passwordHash = await bcrypt.hash(createUserDto.password, salt);
       const newUser: User = {
-        ...createUserDto,
         name: createUserDto.name,
         email: createUserDto.email,
         passwordHash,
-        isActive: true,
         birthDate: createUserDto.birthDate,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -53,7 +53,6 @@ export class UsersService {
     this.logger.log('Fetching all users');
     const { limit = 12, offset = 0 } = queryParams;
     const users = await this.usersRepository.find({
-      where: { isActive: true },
       order: {
         createdAt: 'DESC',
       },
@@ -66,7 +65,7 @@ export class UsersService {
   async findOne(id: string): Promise<User> {
     this.logger.log(`Fetching user with id ${id}`);
     const user = await this.usersRepository.preload({ id });
-    if (!user || !user.isActive) {
+    if (!user || !user.deletedAt) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
 
@@ -76,7 +75,7 @@ export class UsersService {
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     this.logger.log(`Updating user with id ${id}`);
     const user = await this.usersRepository.preload({ id });
-    if (!user || !user.isActive) {
+    if (!user || !user.deletedAt) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
 
@@ -92,7 +91,7 @@ export class UsersService {
   async remove(id: string) {
     this.logger.log(`Removing user with id ${id}`);
     const user = await this.usersRepository.preload({ id });
-    if (!user || !user.isActive) {
+    if (!user || !user.deletedAt) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
 
