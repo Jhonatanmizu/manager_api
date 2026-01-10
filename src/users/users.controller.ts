@@ -7,13 +7,16 @@ import {
   Param,
   Delete,
   Logger,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationDto } from '../shared/dtos';
+import { TimingConnectionInterceptor } from '../shared/interceptors';
 
 @Controller('/v1/user')
+@UseInterceptors(TimingConnectionInterceptor)
 export class UsersController {
   private readonly logger = new Logger(UsersController.name);
   constructor(private readonly usersService: UsersService) {}

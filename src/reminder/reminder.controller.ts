@@ -7,13 +7,16 @@ import {
   Patch,
   Post,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ReminderService } from './reminder.service';
 import { CreateReminderDto } from './dtos/create-reminder.dto';
 import { UpdateReminderDto } from './dtos/update-reminder.dto';
 import { PaginationDto } from '../shared/dtos';
+import { TimingConnectionInterceptor } from '../shared/interceptors';
 
 @Controller('/v1/reminder')
+@UseInterceptors(TimingConnectionInterceptor)
 export class ReminderController {
   constructor(private readonly reminderService: ReminderService) {}
   @Get()
