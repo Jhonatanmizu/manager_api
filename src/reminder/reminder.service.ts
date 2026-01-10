@@ -1,17 +1,17 @@
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { CreateReminderDto } from './dtos/create-reminder.dto';
 import { UpdateReminderDto } from './dtos/update-reminder.dto';
 import { Reminder } from './entities/reminder.entity';
-import { REMINDER_REPOSITORY } from './reminder.providers';
 import { UsersService } from '../users/users.service';
 import { PaginationDto } from '../shared/dtos';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class ReminderService {
   private readonly logger = new Logger(ReminderService.name);
   constructor(
-    @Inject(REMINDER_REPOSITORY)
+    @InjectRepository(Reminder)
     private readonly reminderRepository: Repository<Reminder>,
     private readonly userService: UsersService,
   ) {}

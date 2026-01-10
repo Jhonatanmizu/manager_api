@@ -1,6 +1,5 @@
 import {
   ConflictException,
-  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -10,17 +9,18 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import bcrypt from 'bcrypt';
-import { USER_REPOSITORY } from './users.providers';
+import { PaginationDto } from '../shared/dtos';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
   constructor(
-    @Inject(USER_REPOSITORY)
+    @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
   ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto): Promise<User> {
     try {
       const passwordHash = await bcrypt.hash(createUserDto.password, 10);
       const newUser: User = {
@@ -49,18 +49,21 @@ export class UsersService {
     }
   }
 
-  async findAll() {
+  async findAll(queryParams: PaginationDto): Promise<User[]> {
     this.logger.log('Fetching all users');
+    const { limit = 12, offset = 0 } = queryParams;
     const users = await this.usersRepository.find({
       where: { isActive: true },
       order: {
         createdAt: 'DESC',
       },
+      take: limit,
+      skip: offset,
     });
     return users;
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<User> {
     this.logger.log(`Fetching user with id ${id}`);
     const user = await this.usersRepository.preload({ id });
     if (!user || !user.isActive) {
@@ -70,7 +73,7 @@ export class UsersService {
     return user;
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     this.logger.log(`Updating user with id ${id}`);
     const user = await this.usersRepository.preload({ id });
     if (!user || !user.isActive) {

@@ -24,8 +24,8 @@ Content-Type: application/json
 
 {
   "description":"Esse é o recado 3",
-  "from":"Joana",
-  "to":"Atlas"
+  "from_id":"Joana",
+  "to_id":"Atlas"
 }
 ###
 

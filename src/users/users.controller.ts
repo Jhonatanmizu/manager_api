@@ -11,13 +11,12 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PaginationDto } from '../shared/dtos';
 
 @Controller('/v1/user')
 export class UsersController {
-  constructor(
-    private readonly usersService: UsersService,
-    private readonly logger: Logger,
-  ) {}
+  private readonly logger = new Logger(UsersController.name);
+  constructor(private readonly usersService: UsersService) {}
 
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
@@ -26,9 +25,9 @@ export class UsersController {
   }
 
   @Get()
-  findAll() {
+  findAll(@Param() queryParams: PaginationDto) {
     this.logger.log('Hit find all users');
-    return this.usersService.findAll();
+    return this.usersService.findAll(queryParams);
   }
 
   @Get(':id')
