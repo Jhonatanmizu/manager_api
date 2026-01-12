@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import { HashingServiceProtocol } from './hashing.protocol';
 import * as bcrypt from 'bcrypt';
 

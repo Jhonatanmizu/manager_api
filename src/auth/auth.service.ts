@@ -1,14 +1,32 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { SignInDto } from './dto/sign-in.dto';
+import { UsersService } from 'src/users/users.service';
+import { HashingServiceProtocol } from './hashing/hashing.protocol';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
-  signIn(sigInData: SignInDto) {
+  constructor(
+    private readonly userService: UsersService,
+    private readonly hashingService: HashingServiceProtocol,
+  ) {}
+
+  async signIn(sigInData: SignInDto) {
     this.logger.log(`Sign-in attempt for email: ${sigInData.email}`);
-    // Implement sign-in logic here
-    return { message: 'Sign-in successful', email: sigInData.email };
+    const { email, password } = sigInData;
+    const user = await this.userService.findByEmail(email);
+    const isEqualPasswordHash = this.hashingService.compare(
+      password,
+      user.passwordHash,
+    );
+
+    if (!isEqualPasswordHash) {
+      this.logger.warn(`Invalid password for email: ${email}`);
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    return { message: 'Sign-in successful', user };
   }
 
   signOut(userId: string) {
