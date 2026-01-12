@@ -1,4 +1,4 @@
-import { Reminder } from 'src/reminder/entities/reminder.entity';
+import { Reminder } from '../../reminder/entities/reminder.entity';
 import {
   Column,
   CreateDateColumn,
