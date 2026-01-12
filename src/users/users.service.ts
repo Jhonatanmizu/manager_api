@@ -8,9 +8,9 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-import * as bcrypt from 'bcrypt';
 import { PaginationDto } from '../shared/dtos';
 import { InjectRepository } from '@nestjs/typeorm';
+import { HashingServiceProtocol } from '../auth/hashing/hashing.protocol';
 
 @Injectable()
 export class UsersService {
@@ -18,13 +18,14 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    private readonly hashingService: HashingServiceProtocol,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
-      const saltRounds = 10;
-      const salt = await bcrypt.genSalt(saltRounds);
-      const passwordHash = await bcrypt.hash(createUserDto.password, salt);
+      const passwordHash = await this.hashingService.hash(
+        createUserDto.password,
+      );
       const newUser: User = {
         name: createUserDto.name,
         email: createUserDto.email,
@@ -75,17 +76,28 @@ export class UsersService {
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     this.logger.log(`Updating user with id ${id}`);
     const user = await this.usersRepository.preload({ id });
+
+    let updatedUser: User = {
+      ...user,
+      ...updateUserDto,
+      updatedAt: new Date(),
+    };
+
+    if (updateUserDto.password) {
+      const newPasswordHash = await this.hashingService.hash(
+        updateUserDto.password,
+      );
+      updatedUser = {
+        ...updatedUser,
+        passwordHash: newPasswordHash,
+      };
+    }
+
     if (!user || !user.deletedAt) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
 
-    const updatedUser = await this.usersRepository.save({
-      ...user,
-      ...updateUserDto,
-      updatedAt: new Date(),
-    });
-
-    return updatedUser;
+    return await this.usersRepository.save(updatedUser);
   }
 
   async remove(id: string) {
