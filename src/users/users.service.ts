@@ -109,4 +109,18 @@ export class UsersService {
 
     return await this.usersRepository.softDelete(id);
   }
+
+  public async findByEmail(email: string): Promise<User | null> {
+    this.logger.log(`Finding user by email: ${email}`);
+    const user = await this.usersRepository.findOne({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with email ${email} not found`);
+    }
+    return user;
+  }
 }
