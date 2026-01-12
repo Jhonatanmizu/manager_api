@@ -6,12 +6,13 @@ import { ConfigModule, ConfigType } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import globalConfig from './config/global-config';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forFeature(globalConfig),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule.forFeature(globalConfig)],
+      imports: [ConfigModule.forFeature(globalConfig), AuthModule],
       inject: [globalConfig.KEY],
       useFactory: (globalConfigurations: ConfigType<typeof globalConfig>) => {
         return {
