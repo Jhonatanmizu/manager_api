@@ -1,7 +1,15 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { ConfigType } from '@nestjs/config';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { SignInDto } from './dto/sign-in.dto';
 import { UsersService } from 'src/users/users.service';
 import { HashingServiceProtocol } from './hashing/hashing.protocol';
+import { JwtService } from '@nestjs/jwt';
+import jwtConfig from '../config/jwt.config';
 
 @Injectable()
 export class AuthService {
@@ -10,6 +18,9 @@ export class AuthService {
   constructor(
     private readonly userService: UsersService,
     private readonly hashingService: HashingServiceProtocol,
+    @Inject(jwtConfig.KEY)
+    private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async signIn(sigInData: SignInDto) {
@@ -25,19 +36,27 @@ export class AuthService {
       this.logger.warn(`Invalid password for email: ${email}`);
       throw new UnauthorizedException('Invalid credentials');
     }
+    const payload = { sub: user.id, email: user.email, name: user.name };
 
-    return { message: 'Sign-in successful', user };
+    const access_token = await this.jwtService.signAsync(payload, {
+      secret: this.jwtConfiguration.JWT_SECRET,
+      audience: this.jwtConfiguration.JWT_TOKEN_AUDIENCE,
+      issuer: this.jwtConfiguration.JWT_TOKEN_ISSUER,
+      expiresIn: this.jwtConfiguration.JWT_EXPIRES_IN,
+    });
+
+    return {
+      access_token,
+    };
   }
 
-  signOut(userId: string) {
-    this.logger.log(`Sign-out attempt for user ID: ${userId}`);
-    // Implement sign-out logic here
-    return { message: 'Sign-out successful', userId };
-  }
-
-  refreshToken(userId: string) {
-    this.logger.log(`Token refresh attempt for user ID: ${userId}`);
-    // Implement token refresh logic here
-    return { message: 'Token refreshed', userId };
+  async refreshToken(token: string) {
+    this.logger.log(`Token refresh attempt`);
+    const result = await this.jwtService.verifyAsync(token);
+    const decoded = this.jwtService.decode(token);
+    if (!result) {
+      throw new UnauthorizedException('Invalid token');
+    }
+    return this.jwtService.signAsync(decoded);
   }
 }

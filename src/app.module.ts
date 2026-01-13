@@ -29,6 +29,7 @@ import { AuthModule } from './auth/auth.module';
     }),
     ReminderModule,
     UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
