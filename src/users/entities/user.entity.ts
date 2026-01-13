@@ -46,10 +46,6 @@ export class User {
   })
   passwordHash: string;
 
-  @Column({
-    type: 'boolean',
-    default: true,
-  })
   @OneToMany(() => Reminder, (reminder) => reminder.from)
   receivedReminders: Reminder[];
 
