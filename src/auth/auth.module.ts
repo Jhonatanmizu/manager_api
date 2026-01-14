@@ -22,6 +22,6 @@ import { JwtModule, JwtModuleAsyncOptions } from '@nestjs/jwt';
     },
     AuthService,
   ],
-  exports: [HashingServiceProtocol],
+  exports: [HashingServiceProtocol, JwtModule, ConfigModule],
 })
 export class AuthModule {}
