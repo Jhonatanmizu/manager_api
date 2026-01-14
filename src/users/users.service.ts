@@ -11,6 +11,7 @@ import { User } from './entities/user.entity';
 import { PaginationDto } from '../shared/dtos';
 import { InjectRepository } from '@nestjs/typeorm';
 import { HashingServiceProtocol } from '../auth/hashing/hashing.protocol';
+import { TokenPayloadDto } from 'src/auth/dto/token-payload.dto';
 
 @Injectable()
 export class UsersService {
@@ -73,8 +74,19 @@ export class UsersService {
     return user;
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+    tokenPayloadDto: TokenPayloadDto,
+  ): Promise<User> {
     this.logger.log(`Updating user with id ${id}`);
+
+    const isSameUser = tokenPayloadDto.sub === id;
+
+    if (!isSameUser) {
+      throw new ConflictException('You can only delete your own account');
+    }
+
     const user = await this.usersRepository.preload({ id });
 
     let updatedUser: User = {
@@ -100,9 +112,15 @@ export class UsersService {
     return await this.usersRepository.save(updatedUser);
   }
 
-  async remove(id: string) {
+  async remove(id: string, tokenPayloadDto: TokenPayloadDto) {
     this.logger.log(`Removing user with id ${id}`);
     const user = await this.usersRepository.preload({ id });
+    const isSameUser = tokenPayloadDto.sub === id;
+
+    if (!isSameUser) {
+      throw new ConflictException('You can only delete your own account');
+    }
+
     if (!user || !user.deletedAt) {
       throw new NotFoundException(`User with id ${id} not found`);
     }

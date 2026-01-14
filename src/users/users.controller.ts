@@ -8,12 +8,16 @@ import {
   Delete,
   Logger,
   UseInterceptors,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationDto } from '../shared/dtos';
 import { TimingConnectionInterceptor } from '../shared/interceptors';
+import { AuthGuard } from '../auth/guards/auth-token.guard';
+import { TokenPayloadDto } from '../auth/dto/token-payload.dto';
+import { TokenPayloadParam } from './../auth/params/token-payload.param';
 
 @Controller('/v1/user')
 @UseInterceptors(TimingConnectionInterceptor)
@@ -27,27 +31,38 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
+  @UseGuards(AuthGuard)
   @Get()
   findAll(@Param() queryParams: PaginationDto) {
     this.logger.log('Hit find all users');
     return this.usersService.findAll(queryParams);
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     this.logger.log('Hit find one user');
     return this.usersService.findOne(id);
   }
 
+  @UseGuards(AuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @TokenPayloadParam() tokenPayload: TokenPayloadDto,
+  ) {
     this.logger.log('Hit update user');
-    return this.usersService.update(id, updateUserDto);
+    return this.usersService.update(id, updateUserDto, tokenPayload);
   }
 
+  @UseGuards(AuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(
+    @Param('id') id: string,
+    @TokenPayloadParam() tokenPayload: TokenPayloadDto,
+  ) {
     this.logger.log('Hit delete user');
-    return this.usersService.remove(id);
+    return this.usersService.remove(id, tokenPayload);
   }
 }
