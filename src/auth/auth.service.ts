@@ -10,6 +10,8 @@ import { UsersService } from 'src/users/users.service';
 import { HashingServiceProtocol } from './hashing/hashing.protocol';
 import { JwtService } from '@nestjs/jwt';
 import jwtConfig from '../config/jwt.config';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -36,24 +38,51 @@ export class AuthService {
       this.logger.warn(`Invalid password for email: ${email}`);
       throw new UnauthorizedException('Invalid credentials');
     }
-    const payload = { sub: user.id, email: user.email, name: user.name };
 
-    const access_token = await this.jwtService.signAsync(payload, {
-      secret: this.jwtConfiguration.JWT_SECRET,
-      audience: this.jwtConfiguration.JWT_TOKEN_AUDIENCE,
-      issuer: this.jwtConfiguration.JWT_TOKEN_ISSUER,
-      expiresIn: this.jwtConfiguration.JWT_EXPIRES_IN,
-    });
+    const access_token = await this.signJwtTokenAsync<Partial<User>>(
+      user.id,
+      this.jwtConfiguration.JWT_EXPIRES_IN,
+      { email },
+    );
+
+    const refresh_token = await this.signJwtTokenAsync(
+      user.id,
+      this.jwtConfiguration.JWT_REFRESH_EXPIRES_IN,
+    );
 
     return {
       access_token,
+      refresh_token,
     };
   }
 
-  async refreshToken(token: string) {
+  private async signJwtTokenAsync<T>(
+    sub: string,
+    expiresIn: number,
+    payload?: T,
+  ) {
+    return await this.jwtService.signAsync(
+      { sub, ...payload },
+      {
+        secret: this.jwtConfiguration.JWT_SECRET,
+        audience: this.jwtConfiguration.JWT_TOKEN_AUDIENCE,
+        issuer: this.jwtConfiguration.JWT_TOKEN_ISSUER,
+        expiresIn,
+      },
+    );
+  }
+
+  async refreshToken(refreshTokenDto: RefreshTokenDto) {
     this.logger.log(`Token refresh attempt`);
-    const result = await this.jwtService.verifyAsync(token);
-    const decoded = this.jwtService.decode(token);
+    const result = await this.jwtService.verifyAsync(
+      refreshTokenDto.refreshToken,
+      {
+        secret: this.jwtConfiguration.JWT_SECRET,
+        audience: this.jwtConfiguration.JWT_TOKEN_AUDIENCE,
+        issuer: this.jwtConfiguration.JWT_TOKEN_ISSUER,
+      },
+    );
+    const decoded = this.jwtService.decode(refreshTokenDto.refreshToken);
     if (!result) {
       throw new UnauthorizedException('Invalid token');
     }
