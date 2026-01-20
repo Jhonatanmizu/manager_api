@@ -39,16 +39,22 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const access_token = await this.signJwtTokenAsync<Partial<User>>(
+    return this.generateTokens(user);
+  }
+
+  private async generateTokens(user: User) {
+    const accessTokenPromise = await this.signJwtTokenAsync<Partial<User>>(
       user.id,
       this.jwtConfiguration.JWT_EXPIRES_IN,
-      { email },
+      { email: user.email },
     );
 
-    const refresh_token = await this.signJwtTokenAsync(
+    const refreshTokenPromise = await this.signJwtTokenAsync(
       user.id,
       this.jwtConfiguration.JWT_REFRESH_EXPIRES_IN,
     );
+    const promises = [accessTokenPromise, refreshTokenPromise];
+    const [access_token, refresh_token] = await Promise.all(promises);
 
     return {
       access_token,
@@ -74,18 +80,18 @@ export class AuthService {
 
   async refreshToken(refreshTokenDto: RefreshTokenDto) {
     this.logger.log(`Token refresh attempt`);
-    const result = await this.jwtService.verifyAsync(
-      refreshTokenDto.refreshToken,
-      {
-        secret: this.jwtConfiguration.JWT_SECRET,
-        audience: this.jwtConfiguration.JWT_TOKEN_AUDIENCE,
-        issuer: this.jwtConfiguration.JWT_TOKEN_ISSUER,
-      },
-    );
-    const decoded = this.jwtService.decode(refreshTokenDto.refreshToken);
-    if (!result) {
-      throw new UnauthorizedException('Invalid token');
+    try {
+      const result: Partial<User & { sub: string }> =
+        await this.jwtService.verifyAsync(refreshTokenDto.refreshToken, {
+          secret: this.jwtConfiguration.JWT_SECRET,
+          audience: this.jwtConfiguration.JWT_TOKEN_AUDIENCE,
+          issuer: this.jwtConfiguration.JWT_TOKEN_ISSUER,
+        });
+      const user = await this.userService.findOne(result.sub);
+
+      return this.generateTokens(user);
+    } catch (error) {
+      throw new UnauthorizedException(error.message);
     }
-    return this.jwtService.signAsync(decoded);
   }
 }
