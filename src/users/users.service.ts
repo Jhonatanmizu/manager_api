@@ -67,7 +67,8 @@ export class UsersService {
   async findOne(id: string): Promise<User> {
     this.logger.log(`Fetching user with id ${id}`);
     const user = await this.usersRepository.preload({ id });
-    if (!user || !user.deletedAt) {
+
+    if (!user || user.deletedAt) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
 
@@ -105,7 +106,7 @@ export class UsersService {
       };
     }
 
-    if (!user || !user.deletedAt) {
+    if (!user || user.deletedAt) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
 
@@ -121,7 +122,7 @@ export class UsersService {
       throw new ConflictException('You can only delete your own account');
     }
 
-    if (!user || !user.deletedAt) {
+    if (!user || user.deletedAt) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
 
