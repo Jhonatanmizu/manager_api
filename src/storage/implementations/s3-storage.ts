@@ -2,12 +2,14 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
 } from '@aws-sdk/client-s3';
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { StorageProtocol } from '../storage.protocol';
 import { UploadResult } from '../dtos/upload-result.dto';
 import { ConfigService } from '@nestjs/config';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 @Injectable()
 export class S3Storage implements StorageProtocol {
@@ -32,7 +34,7 @@ export class S3Storage implements StorageProtocol {
     file: Express.Multer.File,
     path = 'uploads',
   ): Promise<UploadResult> {
-    const key = `${path}/${randomUUID()}-${file.originalname}`;
+    const key = `${path}/${randomUUID()}-${file?.originalname}`;
 
     await this.client.send(
       new PutObjectCommand({
@@ -40,7 +42,6 @@ export class S3Storage implements StorageProtocol {
         Key: key,
         Body: file.buffer,
         ContentType: file.mimetype,
-        ACL: 'public-read',
       }),
     );
 
@@ -59,6 +60,18 @@ export class S3Storage implements StorageProtocol {
         Key: fileKey,
       }),
     );
+  }
+
+  async getPresignedUrl(fileKey: string): Promise<string> {
+    const command = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: fileKey,
+    });
+    const expiresIn: number =
+      Number(this.configService.get('AWS_S3_SIGNED_URL_EXPIRES_IN')) ?? 60 * 5;
+    return getSignedUrl(this.client, command, {
+      expiresIn,
+    });
   }
 
   getPublicUrl(fileKey: string): string {

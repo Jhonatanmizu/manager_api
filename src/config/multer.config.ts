@@ -1,5 +1,5 @@
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
-import multer from 'multer';
+import * as multer from 'multer';
 
 export const multerConfig: MulterOptions = {
   storage: multer.memoryStorage(),

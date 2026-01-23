@@ -17,7 +17,7 @@ export class StorageService {
     return this.storage.delete(fileKey);
   }
 
-  getPublicUrl(fileKey: string) {
-    return this.storage.getPublicUrl(fileKey);
+  getPresignedUrl(fileKey: string) {
+    return this.storage.getPresignedUrl(fileKey);
   }
 }
