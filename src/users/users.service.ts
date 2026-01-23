@@ -12,6 +12,7 @@ import { PaginationDto } from '../shared/dtos';
 import { InjectRepository } from '@nestjs/typeorm';
 import { HashingServiceProtocol } from '../auth/hashing/hashing.protocol';
 import { TokenPayloadDto } from 'src/auth/dto/token-payload.dto';
+import { StorageService } from 'src/storage/storage.service';
 
 @Injectable()
 export class UsersService {
@@ -20,6 +21,7 @@ export class UsersService {
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
     private readonly hashingService: HashingServiceProtocol,
+    private readonly storageService: StorageService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -36,6 +38,7 @@ export class UsersService {
         updatedAt: new Date(),
         receivedReminders: [],
         sentReminders: [],
+        picture: '',
       };
       this.logger.log(`Creating user: ${JSON.stringify(newUser)}`);
       const user = await this.usersRepository.save(newUser);
@@ -66,8 +69,12 @@ export class UsersService {
 
   async findOne(id: string): Promise<User> {
     this.logger.log(`Fetching user with id ${id}`);
-    const user = await this.usersRepository.preload({ id });
-
+    const user = await this.usersRepository.findOne({
+      where: {
+        id,
+      },
+    });
+    this.logger.log('user', JSON.stringify(user));
     if (!user || user.deletedAt) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
@@ -85,7 +92,7 @@ export class UsersService {
     const isSameUser = tokenPayloadDto.sub === id;
 
     if (!isSameUser) {
-      throw new ConflictException('You can only delete your own account');
+      throw new ConflictException('You can only update your own account');
     }
 
     const user = await this.usersRepository.preload({ id });
@@ -141,5 +148,27 @@ export class UsersService {
       throw new NotFoundException(`User with email ${email} not found`);
     }
     return user;
+  }
+
+  public async uploadUserPicture(
+    id: string,
+    tokenPayloadDto: TokenPayloadDto,
+    file: Express.Multer.File,
+  ) {
+    const isSameUser = tokenPayloadDto.sub === id;
+    if (!isSameUser) {
+      throw new ConflictException('You can only update your own account');
+    }
+    this.logger.log('Uploading user picture');
+    const result = await this.storageService.upload(file, 'picture');
+    this.logger.log(`updating user picture ${JSON.stringify(result)}`);
+    const preloadedUser = await this.usersRepository.preload({ id });
+    const updatedUser: User = {
+      ...preloadedUser,
+      picture: result.url,
+    };
+
+    await this.usersRepository.update(id, updatedUser);
+    return result;
   }
 }

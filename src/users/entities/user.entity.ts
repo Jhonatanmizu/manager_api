@@ -54,4 +54,12 @@ export class User {
 
   @DeleteDateColumn()
   deletedAt?: Date;
+
+  @Column({
+    type: 'varchar',
+    length: '255',
+    nullable: true,
+    default: '',
+  })
+  picture?: string;
 }

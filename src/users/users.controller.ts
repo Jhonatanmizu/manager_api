@@ -9,6 +9,7 @@ import {
   Logger,
   UseInterceptors,
   UseGuards,
+  UploadedFile,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -18,6 +19,8 @@ import { TimingConnectionInterceptor } from '../shared/interceptors';
 import { AuthGuard } from '../auth/guards/auth-token.guard';
 import { TokenPayloadDto } from '../auth/dto/token-payload.dto';
 import { TokenPayloadParam } from './../auth/params/token-payload.param';
+import { multerConfig } from 'src/config/multer.config';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('/v1/user')
 @UseInterceptors(TimingConnectionInterceptor)
@@ -26,43 +29,55 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
+  async create(@Body() createUserDto: CreateUserDto) {
     this.logger.log('Hit create user');
-    return this.usersService.create(createUserDto);
+    return await this.usersService.create(createUserDto);
   }
 
   @UseGuards(AuthGuard)
   @Get()
-  findAll(@Param() queryParams: PaginationDto) {
+  async findAll(@Param() queryParams: PaginationDto) {
     this.logger.log('Hit find all users');
-    return this.usersService.findAll(queryParams);
+    return await this.usersService.findAll(queryParams);
   }
 
   @UseGuards(AuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     this.logger.log('Hit find one user');
-    return this.usersService.findOne(id);
+    return await this.usersService.findOne(id);
   }
 
   @UseGuards(AuthGuard)
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
     @TokenPayloadParam() tokenPayload: TokenPayloadDto,
   ) {
     this.logger.log('Hit update user');
-    return this.usersService.update(id, updateUserDto, tokenPayload);
+    return await this.usersService.update(id, updateUserDto, tokenPayload);
   }
 
   @UseGuards(AuthGuard)
   @Delete(':id')
-  remove(
+  async remove(
     @Param('id') id: string,
     @TokenPayloadParam() tokenPayload: TokenPayloadDto,
   ) {
     this.logger.log('Hit delete user');
-    return this.usersService.remove(id, tokenPayload);
+    return await this.usersService.remove(id, tokenPayload);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post(':id/picture')
+  @UseInterceptors(FileInterceptor('file', multerConfig))
+  async updateProfilePicture(
+    @Param('id') id: string,
+    @TokenPayloadParam() tokenPayload: TokenPayloadDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    this.logger.log('Hit upload profile picture');
+    return await this.usersService.uploadUserPicture(id, tokenPayload, file);
   }
 }
