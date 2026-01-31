@@ -11,8 +11,8 @@ import { User } from './entities/user.entity';
 import { PaginationDto } from '../shared/dtos';
 import { InjectRepository } from '@nestjs/typeorm';
 import { HashingServiceProtocol } from '../auth/hashing/hashing.protocol';
-import { TokenPayloadDto } from 'src/auth/dto/token-payload.dto';
-import { StorageService } from 'src/storage/storage.service';
+import { TokenPayloadDto } from '../auth/dto/token-payload.dto';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class UsersService {
@@ -57,14 +57,19 @@ export class UsersService {
   async findAll(queryParams: PaginationDto): Promise<User[]> {
     this.logger.log('Fetching all users');
     const { limit = 12, offset = 0 } = queryParams;
-    const users = await this.usersRepository.find({
-      order: {
-        createdAt: 'DESC',
-      },
-      take: limit,
-      skip: offset,
-    });
-    return users;
+    try {
+      const users = await this.usersRepository.find({
+        order: {
+          createdAt: 'DESC',
+        },
+        take: limit,
+        skip: offset,
+      });
+      return users;
+    } catch (e) {
+      this.logger.error(`Error retrieving users: ${e.message}`);
+      throw new Error('Failed to retrieve users');
+    }
   }
 
   async findOne(id: string): Promise<User> {
