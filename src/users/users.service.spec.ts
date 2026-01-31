@@ -8,6 +8,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { PaginationDto } from '../shared/dtos';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Logger, NotFoundException } from '@nestjs/common';
+import { TokenPayloadDto } from 'src/auth/dto/token-payload.dto';
 
 describe('UsersService', () => {
   beforeAll(() => {
@@ -36,6 +37,9 @@ describe('UsersService', () => {
             find: jest.fn(),
             save: jest.fn(),
             findOne: jest.fn(),
+            update: jest.fn(),
+            preload: jest.fn(),
+            softDelete: jest.fn(),
           },
         },
         {
@@ -312,6 +316,147 @@ describe('UsersService', () => {
       };
       jest.spyOn(userRepo, 'findOne').mockResolvedValue(mockUser);
       await expect(service.findOne(userId)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('update', () => {
+    it("should update a user's information", async () => {
+      const userId = '1';
+      const newUser: User = {
+        id: '1',
+        name: 'Original Name',
+        email: '',
+        passwordHash: 'originalHash',
+        birthDate: new Date('1990-01-01'),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        receivedReminders: [],
+        sentReminders: [],
+        picture: '',
+      };
+      const updatedUser: User = {
+        ...newUser,
+        name: 'Updated Name',
+      };
+      const tokenPayloadDto: TokenPayloadDto = {
+        sub: userId,
+        email: '',
+        name: 'Original Name',
+      };
+      jest.spyOn(userRepo, 'preload').mockResolvedValue(newUser);
+      jest.spyOn(userRepo, 'save').mockResolvedValue(updatedUser);
+
+      const result = await service.update(userId, updatedUser, tokenPayloadDto);
+
+      expect(result).toBeDefined();
+      expect(result.name).toBe('Updated Name');
+    });
+
+    it("should throw NotFoundException if user to update doesn't exist", async () => {
+      const userId = 'nonexistent';
+      const updatedUser: User = {
+        id: userId,
+        name: 'Updated Name',
+        email: '',
+        passwordHash: 'updatedHash',
+        birthDate: new Date('1990-01-01'),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        receivedReminders: [],
+        sentReminders: [],
+        picture: '',
+      };
+      const tokenPayloadDto: TokenPayloadDto = {
+        sub: userId,
+        email: '',
+        name: 'Updated Name',
+      };
+      jest.spyOn(userRepo, 'preload').mockResolvedValue(undefined);
+
+      await expect(
+        service.update(userId, updatedUser, tokenPayloadDto),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ConflictException if trying to update another user', async () => {
+      const userId = '1';
+      const updatedUser: User = {
+        id: userId,
+        name: 'Updated Name',
+        email: '',
+        passwordHash: 'updatedHash',
+        birthDate: new Date('1990-01-01'),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        receivedReminders: [],
+        sentReminders: [],
+        picture: '',
+      };
+      const tokenPayloadDto: TokenPayloadDto = {
+        sub: '2', // Different user
+        email: '',
+        name: 'Another User',
+      };
+
+      await expect(
+        service.update(userId, updatedUser, tokenPayloadDto),
+      ).rejects.toThrow('You can only update your own account');
+    });
+  });
+
+  describe('remove', () => {
+    it('should remove a user', async () => {
+      const userId = '1';
+      const user: User = {
+        id: userId,
+        name: 'User To Delete',
+        email: '',
+        passwordHash: 'hashToDelete',
+        birthDate: new Date('1990-01-01'),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        receivedReminders: [],
+        sentReminders: [],
+        picture: '',
+      };
+      const tokenPayloadDto: TokenPayloadDto = {
+        sub: userId,
+        email: '',
+        name: 'User To Delete',
+      };
+      jest.spyOn(userRepo, 'preload').mockResolvedValue(user);
+      jest.spyOn(userRepo, 'softDelete').mockResolvedValue({} as any);
+
+      await expect(
+        service.remove(userId, tokenPayloadDto),
+      ).resolves.not.toThrow();
+    });
+
+    it("should throw NotFoundException if user to remove doesn't exist", async () => {
+      const userId = 'nonexistent';
+      const tokenPayloadDto: TokenPayloadDto = {
+        sub: userId,
+        email: '',
+        name: 'Nonexistent User',
+      };
+      jest.spyOn(userRepo, 'preload').mockResolvedValue(undefined);
+
+      await expect(service.remove(userId, tokenPayloadDto)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should throw ConflictException if trying to remove another user', async () => {
+      const userId = '1';
+      const tokenPayloadDto: TokenPayloadDto = {
+        sub: '2', // Different user
+        email: '',
+        name: 'Another User',
+      };
+
+      await expect(service.remove(userId, tokenPayloadDto)).rejects.toThrow(
+        'You can only delete your own account',
+      );
     });
   });
 });
