@@ -63,15 +63,29 @@ export class UsersService {
     const { limit = 12, offset = 0 } = queryParams;
     try {
       const users = await this.usersRepository.find({
-        order: {
-          createdAt: 'DESC',
-        },
+        order: { createdAt: 'DESC' },
         take: limit,
         skip: offset,
-        relations: {
-          picture: true,
-        },
+        relations: { picture: true },
       });
+
+      await Promise.all(
+        users.map(async (user) => {
+          if (user.picture) {
+            try {
+              const presignedUrl = await this.storageService.getPresignedUrl(
+                user.picture.key,
+              );
+              user.picture.url = presignedUrl;
+            } catch (err) {
+              this.logger.warn(
+                `Failed to get presigned URL for user ${user.id}: ${err.message}`,
+              );
+              user.picture.url = '';
+            }
+          }
+        }),
+      );
       return users;
     } catch (e) {
       this.logger.error(`Error retrieving users: ${e.message}`);
@@ -197,12 +211,25 @@ export class UsersService {
     const presignedUrl = await this.storageService.getPresignedUrl(result.key);
     uploadedFile.url = presignedUrl;
     this.logger.log(`updating user picture ${JSON.stringify(result)}`);
-    const preloadedUser = await this.usersRepository.preload({ id });
+
+    const preloadedUser = await this.usersRepository.findOne({
+      where: { id },
+      relations: { picture: true },
+    });
+    if (
+      preloadedUser?.picture &&
+      preloadedUser.picture.id !== uploadedFile.id
+    ) {
+      try {
+        await this.fileService.deleteFile(preloadedUser.picture.id);
+      } catch (err) {
+        this.logger.warn(`Failed to delete old picture file: ${err.message}`);
+      }
+    }
     const updatedUser: User = {
       ...preloadedUser,
       picture: uploadedFile,
     };
-
     await this.usersRepository.update(id, updatedUser);
     return result;
   }

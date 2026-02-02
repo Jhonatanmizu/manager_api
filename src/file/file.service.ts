@@ -14,4 +14,15 @@ export class FileService {
     this.logger.log(`File created with key: ${result.key}`);
     return result;
   }
+
+  async deleteFile(fileId: string): Promise<void> {
+    this.logger.log(`Deleting file with id: ${fileId}`);
+    const file = await this.fileRepo.findOne({ where: { id: fileId } });
+    if (!file) {
+      this.logger.warn(`File with id ${fileId} not found.`);
+      return;
+    }
+    await this.fileRepo.softDelete(fileId);
+    this.logger.log(`File with id ${fileId} deleted.`);
+  }
 }
