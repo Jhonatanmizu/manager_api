@@ -13,6 +13,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { HashingServiceProtocol } from '../auth/hashing/hashing.protocol';
 import { TokenPayloadDto } from '../auth/dto/token-payload.dto';
 import { StorageService } from '../storage/storage.service';
+import { FileService } from '../file/file.service';
+import { File } from '../file/entities/file.entity';
+import { CreateFileDto } from '../file/dtos/create-file.dto';
 
 @Injectable()
 export class UsersService {
@@ -22,6 +25,7 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
     private readonly hashingService: HashingServiceProtocol,
     private readonly storageService: StorageService,
+    private readonly fileService: FileService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -38,7 +42,7 @@ export class UsersService {
         updatedAt: new Date(),
         receivedReminders: [],
         sentReminders: [],
-        picture: '',
+        picture: null,
       };
       this.logger.log(`Creating user: ${JSON.stringify(newUser)}`);
       const user = await this.usersRepository.save(newUser);
@@ -64,6 +68,9 @@ export class UsersService {
         },
         take: limit,
         skip: offset,
+        relations: {
+          picture: true,
+        },
       });
       return users;
     } catch (e) {
@@ -78,7 +85,20 @@ export class UsersService {
       where: {
         id,
       },
+      relations: {
+        picture: true,
+        receivedReminders: true,
+        sentReminders: true,
+      },
     });
+
+    if (user && user.picture) {
+      const presignedUrl = await this.storageService.getPresignedUrl(
+        user?.picture?.key,
+      );
+      user.picture.url = presignedUrl;
+    }
+
     this.logger.log('user', JSON.stringify(user));
     if (!user || user.deletedAt) {
       throw new NotFoundException(`User with id ${id} not found`);
@@ -166,11 +186,21 @@ export class UsersService {
     }
     this.logger.log('Uploading user picture');
     const result = await this.storageService.upload(file, 'picture');
+    const createFileDto: CreateFileDto = {
+      key: result.key,
+      filename: file.filename,
+      size: result.size,
+      mimeType: result.mimeType,
+      url: result.url,
+    };
+    const uploadedFile: File = await this.fileService.createFile(createFileDto);
+    const presignedUrl = await this.storageService.getPresignedUrl(result.key);
+    uploadedFile.url = presignedUrl;
     this.logger.log(`updating user picture ${JSON.stringify(result)}`);
     const preloadedUser = await this.usersRepository.preload({ id });
     const updatedUser: User = {
       ...preloadedUser,
-      picture: result.url,
+      picture: uploadedFile,
     };
 
     await this.usersRepository.update(id, updatedUser);

@@ -85,7 +85,7 @@ describe('UsersService', () => {
         updatedAt: new Date(),
         receivedReminders: [],
         sentReminders: [],
-        picture: '',
+        picture: null,
       } as User);
 
       const result = await service.create(createUserDto);
@@ -144,7 +144,7 @@ describe('UsersService', () => {
           updatedAt: new Date(),
           receivedReminders: [],
           sentReminders: [],
-          picture: '',
+          picture: null,
         },
         {
           id: '2',
@@ -156,7 +156,7 @@ describe('UsersService', () => {
           updatedAt: new Date(),
           receivedReminders: [],
           sentReminders: [],
-          picture: '',
+          picture: null,
         },
       ];
       jest.spyOn(userRepo, 'find').mockResolvedValue(mockUsers);
@@ -221,7 +221,7 @@ describe('UsersService', () => {
         updatedAt: new Date(),
         receivedReminders: [],
         sentReminders: [],
-        picture: '',
+        picture: null,
       } as User);
 
       const result = await service.create(createUserDto);
@@ -245,7 +245,7 @@ describe('UsersService', () => {
           updatedAt: new Date(),
           receivedReminders: [],
           sentReminders: [],
-          picture: '',
+          picture: null,
         });
       }
       jest.spyOn(userRepo, 'find').mockResolvedValue(mockUsers);
@@ -284,7 +284,7 @@ describe('UsersService', () => {
         updatedAt: new Date(),
         receivedReminders: [],
         sentReminders: [],
-        picture: '',
+        picture: null,
       };
       jest.spyOn(userRepo, 'findOne').mockResolvedValue(mockUser);
 
@@ -312,7 +312,7 @@ describe('UsersService', () => {
         deletedAt: new Date(),
         receivedReminders: [],
         sentReminders: [],
-        picture: '',
+        picture: null,
       };
       jest.spyOn(userRepo, 'findOne').mockResolvedValue(mockUser);
       await expect(service.findOne(userId)).rejects.toThrow(NotFoundException);
@@ -332,7 +332,7 @@ describe('UsersService', () => {
         updatedAt: new Date(),
         receivedReminders: [],
         sentReminders: [],
-        picture: '',
+        picture: null,
       };
       const updatedUser: User = {
         ...newUser,
@@ -364,7 +364,7 @@ describe('UsersService', () => {
         updatedAt: new Date(),
         receivedReminders: [],
         sentReminders: [],
-        picture: '',
+        picture: null,
       };
       const tokenPayloadDto: TokenPayloadDto = {
         sub: userId,
@@ -390,7 +390,7 @@ describe('UsersService', () => {
         updatedAt: new Date(),
         receivedReminders: [],
         sentReminders: [],
-        picture: '',
+        picture: null,
       };
       const tokenPayloadDto: TokenPayloadDto = {
         sub: '2', // Different user
@@ -417,7 +417,7 @@ describe('UsersService', () => {
         updatedAt: new Date(),
         receivedReminders: [],
         sentReminders: [],
-        picture: '',
+        picture: null,
       };
       const tokenPayloadDto: TokenPayloadDto = {
         sub: userId,

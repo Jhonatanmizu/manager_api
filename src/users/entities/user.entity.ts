@@ -1,3 +1,4 @@
+import { File } from '../../file/entities/file.entity';
 import { Reminder } from '../../reminder/entities/reminder.entity';
 import {
   Column,
@@ -5,6 +6,7 @@ import {
   DeleteDateColumn,
   Entity,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -55,11 +57,6 @@ export class User {
   @DeleteDateColumn()
   deletedAt?: Date;
 
-  @Column({
-    type: 'varchar',
-    length: '255',
-    nullable: true,
-    default: '',
-  })
-  picture?: string;
+  @OneToOne(() => File, { nullable: true })
+  picture?: File | null;
 }
