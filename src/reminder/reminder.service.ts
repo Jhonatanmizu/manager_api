@@ -3,7 +3,7 @@ import { Repository } from 'typeorm';
 import { CreateReminderDto } from './dtos/create-reminder.dto';
 import { UpdateReminderDto } from './dtos/update-reminder.dto';
 import { Reminder } from './entities/reminder.entity';
-import { UsersService } from '../users/users.service';
+import { UsersService } from '../user/user.service';
 import { PaginationDto } from '../shared/dtos';
 import { InjectRepository } from '@nestjs/typeorm';
 

@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 import { ReminderController } from './reminder.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Reminder } from './entities/reminder.entity';
-import { UsersModule } from '../users/users.module';
+import { UsersModule } from '../user/user.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Reminder]), UsersModule],

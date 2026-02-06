@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReminderService } from './reminder.service';
 import { Logger } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
+import { UsersService } from '../user/user.service';
 import { Reminder } from './entities/reminder.entity';
-import { User } from '../users/entities/user.entity';
+import { User } from '../user/entities/user.entity';
 
 describe('ReminderService', () => {
   let service: ReminderService;

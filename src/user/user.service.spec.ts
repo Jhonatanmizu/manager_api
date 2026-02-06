@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UsersService } from './users.service';
+import { UsersService } from './user.service';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { HashingServiceProtocol } from '../auth/hashing/hashing.protocol';

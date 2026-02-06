@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ReminderModule } from './reminder/reminder.module';
 import { ConfigModule, ConfigType } from '@nestjs/config';
-import { UsersModule } from './users/users.module';
+import { UsersModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import globalConfig from './config/global-config';
 import { AuthModule } from './auth/auth.module';

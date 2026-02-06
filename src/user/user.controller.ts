@@ -11,14 +11,14 @@ import {
   UseGuards,
   UploadedFile,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
+import { UsersService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationDto } from '../shared/dtos';
 import { TimingConnectionInterceptor } from '../shared/interceptors';
 import { AuthGuard } from '../auth/guards/auth-token.guard';
 import { TokenPayloadDto } from '../auth/dto/token-payload.dto';
-import { TokenPayloadParam } from './../auth/params/token-payload.param';
+import { TokenPayloadParam } from '../auth/params/token-payload.param';
 import { multerConfig } from 'src/config/multer.config';
 import { FileInterceptor } from '@nestjs/platform-express';
 
